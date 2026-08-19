@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Understanding Neural Networks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F2E9;
+    --paper-line:#E4DCC8;
+    --ink:#1E2A38;
+    --ink-soft:#5B6472;
+    --signal:#3F6FB4;
+    --signal-soft:#B9CBE3;
+    --accent:#E2672A;
+    --accent-soft:#F6DECB;
+    --dot:#1E2A38;
+    --radius:14px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle, var(--paper-line) 1px, transparent 1px) 0 0/28px 28px,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:840px;
+    margin:0 auto;
+    padding:0 28px 120px;
+  }
+
+  /* ---------- Hero ---------- */
+
+  header.hero{
+    padding:96px 0 56px;
+    border-bottom:1px solid var(--paper-line);
+    margin-bottom:56px;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--signal);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+
+  .eyebrow::before{
+    content:"";
+    width:7px; height:7px;
+    background:var(--accent);
+    border-radius:50%;
+    display:inline-block;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(2.4rem, 5.4vw, 3.6rem);
+    line-height:1.08;
+    margin:0 0 20px;
+    letter-spacing:-0.01em;
+  }
+
+  .hero p{
+    font-size:1.08rem;
+    color:var(--ink-soft);
+    max-width:56ch;
+    margin:0;
+  }
+
+  /* ---------- Sections ---------- */
+
+  section{ margin-bottom:64px; }
+
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--paper-line);
+  }
+
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0 0 22px;
+    letter-spacing:-0.005em;
+  }
+
+  /* ---------- Lists ---------- */
+
+  ul.plain, ol.numbered{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+
+  ul.plain > li{
+    position:relative;
+    padding-left:26px;
+    margin-bottom:16px;
+    color:var(--ink);
+  }
+
+  ul.plain > li::before{
+    content:"";
+    position:absolute;
+    left:2px;
+    top:10px;
+    width:6px; height:6px;
+    background:var(--signal);
+    border-radius:50%;
+  }
+
+  .sublist{
+    list-style:none;
+    margin:14px 0 4px;
+    padding:0 0 0 26px;
+    border-left:2px solid var(--paper-line);
+  }
+
+  .sublist li{
+    position:relative;
+    padding:2px 0 10px 22px;
+    color:var(--ink-soft);
+  }
+
+  .sublist li::before{
+    content:"—";
+    position:absolute;
+    left:0;
+    color:var(--accent);
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .sublist li b{ color:var(--ink); font-weight:600; }
+
+  ol.numbered{ counter-reset:step; }
+
+  ol.numbered > li{
+    counter-increment:step;
+    position:relative;
+    padding:0 0 20px 44px;
+    margin-bottom:2px;
+    border-left:2px solid var(--paper-line);
+    padding-top:2px;
+  }
+
+  ol.numbered > li:last-child{ border-left:2px solid transparent; }
+
+  ol.numbered > li::before{
+    content:counter(step);
+    position:absolute;
+    left:-15px;
+    top:0;
+    width:28px; height:28px;
+    background:var(--paper);
+    border:2px solid var(--signal);
+    color:var(--signal);
+    border-radius:50%;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .uses{
+    list-style:none;
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px 18px;
+    margin:16px 0 0;
+    padding:0;
+  }
+
+  .uses li{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13.5px;
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:8px;
+    padding:9px 12px;
+  }
+
+  /* ---------- Diagram ---------- */
+
+  .diagram-card{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius);
+    padding:8px 8px 4px;
+    box-shadow:0 1px 0 var(--paper-line);
+  }
+
+  .diagram-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:14px;
+    padding:22px 26px 6px;
+  }
+
+  .diagram-head h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.2rem;
+    margin:0 0 6px;
+  }
+
+  .diagram-head p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    max-width:44ch;
+  }
+
+  button#run-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.04em;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:12px 18px;
+    border-radius:9px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s ease, transform .1s ease;
+  }
+  button#run-btn:hover{ background:var(--signal); }
+  button#run-btn:active{ transform:scale(.97); }
+  button#run-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .svg-wrap{ padding:6px 10px 18px; }
+
+  svg{ width:100%; height:auto; display:block; }
+
+  .layer-caption{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    fill:var(--ink-soft);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+
+  .neuron{
+    fill:var(--dot);
+    transition:fill .3s ease, r .3s ease;
+  }
+  .neuron.lit{ fill:var(--accent); }
+
+  .edge{
+    stroke:var(--paper-line);
+    stroke-width:1.6;
+    fill:none;
+    transition:stroke .25s ease;
+  }
+  .edge.h2o{ stroke-width:2; }
+
+  .edge.flow{
+    stroke:var(--signal);
+    stroke-dasharray:6 7;
+    animation:march .6s linear infinite;
+  }
+  .edge.flow.out{ stroke:var(--accent); }
+
+  @keyframes march{
+    to{ stroke-dashoffset:-26; }
+  }
+
+  .feature-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    fill:var(--ink);
+  }
+  .feature-value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    fill:var(--ink-soft);
+  }
+
+  .weight-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    fill:var(--signal);
+    opacity:0;
+    transition:opacity .3s ease;
+  }
+  .weight-tag.show{ opacity:1; }
+
+  .output-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    fill:var(--ink-soft);
+  }
+
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:999px;
+    background:var(--accent-soft);
+    color:#9A3E10;
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .badge.show{ opacity:1; transform:translateY(0); }
+
+  .readout{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:4px 26px 22px;
+    flex-wrap:wrap;
+  }
+
+  .readout .value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    color:var(--ink);
+  }
+
+  .readout .value span{ color:var(--signal); font-weight:600; }
+
+  .hint{
+    font-size:13px;
+    color:var(--ink-soft);
+    padding:0 26px 20px;
+    border-top:1px solid var(--paper-line);
+    margin-top:4px;
+    padding-top:16px;
+  }
+
+  .hint b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- footer ---------- */
+
+  footer{
+    text-align:center;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.05em;
+    padding-top:8px;
+  }
+
+  @media (max-width:600px){
+    header.hero{ padding:64px 0 40px; }
+    .uses{ grid-template-columns:1fr; }
+    .diagram-head{ flex-direction:column; }
+    button#run-btn{ width:100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .edge.flow{ animation:none; }
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">A visual primer</div>
+    <h1>Understanding Neural Networks</h1>
+    <p>How a machine learning model turns raw numbers into a decision — layer by layer, weight by weight.</p>
+  </header>
+
+  <section id="basics">
+    <p class="section-label">The basics</p>
+    <ul class="plain">
+      <li>A neural network is a type of machine learning model used to learn patterns from data and make predictions or decisions.</li>
+      <li>Neural networks are inspired by the structure and information‑processing mechanisms of biological neural networks, but they do not replicate the human brain.</li>
+      <li>A neural network is made up of interconnected artificial neurons (nodes) arranged in layers.</li>
+      <li>The three basic types of layers are:
+        <ul class="sublist">
+          <li><b>Input layer</b> — receives the input data.</li>
+          <li><b>Hidden layer(s)</b> — process the data and learn patterns.</li>
+          <li><b>Output layer</b> — produces the final prediction or result.</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section id="how-it-works">
+    <p class="section-label">How it works</p>
+    <ol class="numbered">
+      <li>Each connection between neurons has a <b>weight</b>, which determines how strongly one neuron's output influences another neuron.</li>
+      <li>Neurons also use a <b>bias</b>, which allows the model to adjust the weighted input before producing an output.</li>
+      <li>An <b>activation function</b> determines the output of a neuron and allows neural networks to learn complex, non‑linear patterns.</li>
+      <li>During training, the neural network makes predictions, compares them with the correct answers, calculates an error (loss), and adjusts its weights and biases to reduce that error.</li>
+      <li>This learning process is repeated over many examples and iterations, allowing the model to gradually improve its predictions.</li>
+      <li>Neural networks are widely used for tasks such as:
+        <ul class="uses">
+          <li>Image recognition</li>
+          <li>Speech recognition</li>
+          <li>Natural language processing</li>
+          <li>Prediction and classification</li>
+          <li>Recommendation systems</li>
+          <li>Generative AI</li>
+        </ul>
+      </li>
+    </ol>
+  </section>
+
+  <section id="example">
+    <p class="section-label">See it in action</p>
+    <h2>Example — will this student pass?</h2>
+
+    <div class="diagram-card">
+      <div class="diagram-head">
+        <div>
+          <h3>Study hours · Attendance · Previous marks</h3>
+          <p>Three features flow through the network. Each connection carries a weight; the network combines everything to produce a single prediction.</p>
+        </div>
+        <button id="run-btn" type="button">▶ Run forward pass</button>
+      </div>
+
+      <div class="svg-wrap">
+        <svg viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram of a neural network with an input layer of three neurons, a hidden layer of three neurons, and an output layer of one neuron">
+
+          <text x="90" y="40" text-anchor="middle" class="layer-caption">Input layer</text>
+          <text x="350" y="40" text-anchor="middle" class="layer-caption">Hidden layer</text>
+          <text x="600" y="40" text-anchor="middle" class="layer-caption">Output layer</text>
+
+          <!-- edges: input -> hidden -->
+          <g id="edges-ih">
+            <path class="edge" d="M100,90 L350,90"/>
+            <path class="edge" d="M100,90 L350,190"/>
+            <path class="edge" d="M100,90 L350,290"/>
+
+            <path class="edge" d="M100,190 L350,90"/>
+            <path class="edge" d="M100,190 L350,190"/>
+            <path class="edge" d="M100,190 L350,290"/>
+
+            <path class="edge" d="M100,290 L350,90"/>
+            <path class="edge" d="M100,290 L350,190"/>
+            <path class="edge" d="M100,290 L350,290"/>
+          </g>
+
+          <!-- edges: hidden -> output -->
+          <g id="edges-ho">
+            <path class="edge h2o" d="M350,90 L600,190"/>
+            <path class="edge h2o" d="M350,190 L600,190"/>
+            <path class="edge h2o" d="M350,290 L600,190"/>
+          </g>
+
+          <!-- weight labels on the worked example (top hidden neuron) -->
+          <text class="weight-tag" id="w1" x="205" y="76">0.6</text>
+          <text class="weight-tag" id="w2" x="205" y="152">0.8</text>
+          <text class="weight-tag" id="w3" x="205" y="248">0.5</text>
+
+          <!-- input neurons -->
+          <circle class="neuron" id="in1" cx="100" cy="90" r="9"/>
+          <circle class="neuron" id="in2" cx="100" cy="190" r="9"/>
+          <circle class="neuron" id="in3" cx="100" cy="290" r="9"/>
+
+          <text class="feature-label" x="18" y="76">Study hours</text>
+          <text class="feature-value" x="18" y="112">5</text>
+
+          <text class="feature-label" x="12" y="176">Attendance</text>
+          <text class="feature-value" x="18" y="212">90%</text>
+
+          <text class="feature-label" x="4" y="276">Previous marks</text>
+          <text class="feature-value" x="18" y="312">75</text>
+
+          <!-- hidden neurons -->
+          <circle class="neuron" id="h1" cx="350" cy="90" r="9"/>
+          <circle class="neuron" id="h2" cx="350" cy="190" r="9"/>
+          <circle class="neuron" id="h3" cx="350" cy="290" r="9"/>
+
+          <!-- output neuron -->
+          <circle class="neuron" id="out1" cx="600" cy="190" r="10"/>
+          <text class="output-tag" id="out-label" x="622" y="195">0.00</text>
+        </svg>
+      </div>
+
+      <div class="readout">
+        <span class="value">Prediction: <span id="pred-value">0.00</span></span>
+        <span class="badge" id="pass-badge">PASS</span>
+      </div>
+
+      <p class="hint"><b>What just happened:</b> every input is multiplied by a weight, the hidden neurons combine those weighted signals (plus a bias) through an activation function, and the output neuron turns the result into a single score. Values above ~0.5 here read as <b>PASS</b>.</p>
+    </div>
+  </section>
+
+  <footer>trained one example at a time</footer>
+
+</div>
+
+<script>
+(function(){
+  const btn = document.getElementById('run-btn');
+  const edgesIH = document.querySelectorAll('#edges-ih .edge');
+  const edgesHO = document.querySelectorAll('#edges-ho .edge');
+  const neurons = ['in1','in2','in3','h1','h2','h3','out1'].map(id => document.getElementById(id));
+  const weightTags = ['w1','w2','w3'].map(id => document.getElementById(id));
+  const predValue = document.getElementById('pred-value');
+  const outLabel = document.getElementById('out-label');
+  const badge = document.getElementById('pass-badge');
+
+  let running = false;
+  const TARGET = 0.92;
+
+  function reset(){
+    edgesIH.forEach(e => e.classList.remove('flow'));
+    edgesHO.forEach(e => e.classList.remove('flow', 'out'));
+    neurons.forEach(n => n.classList.remove('lit'));
+    weightTags.forEach(w => w.classList.remove('show'));
+    badge.classList.remove('show');
+    predValue.textContent = '0.00';
+    outLabel.textContent = '0.00';
+  }
+
+  function countUp(el, to, duration){
+    const start = performance.now();
+    function step(now){
+      const t = Math.min(1, (now - start) / duration);
+      const val = (t * to).toFixed(2);
+      el.textContent = val;
+      if (t < 1) requestAnimationFrame(step);
+      else el.textContent = to.toFixed(2);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function run(){
+    if (running) return;
+    running = true;
+    reset();
+
+    // 1. light input neurons
+    setTimeout(() => {
+      ['in1','in2','in3'].forEach(id => document.getElementById(id).classList.add('lit'));
+    }, 50);
+
+    // 2. flow input -> hidden, reveal weights
+    setTimeout(() => {
+      edgesIH.forEach(e => e.classList.add('flow'));
+      weightTags.forEach(w => w.classList.add('show'));
+    }, 300);
+
+    // 3. light hidden neurons
+    setTimeout(() => {
+      ['h1','h2','h3'].forEach(id => document.getElementById(id).classList.add('lit'));
+    }, 900);
+
+    // 4. flow hidden -> output
+    setTimeout(() => {
+      edgesHO.forEach(e => { e.classList.add('flow'); e.classList.add('out'); });
+    }, 1150);
+
+    // 5. light output, count up prediction
+    setTimeout(() => {
+      document.getElementById('out1').classList.add('lit');
+      countUp(predValue, TARGET, 700);
+      countUp(outLabel, TARGET, 700);
+    }, 1650);
+
+    // 6. reveal PASS badge
+    setTimeout(() => {
+      badge.classList.add('show');
+      running = false;
+    }, 2450);
+  }
+
+  btn.addEventListener('click', run);
+})();
+</script>
+
+</body>
+</html>
